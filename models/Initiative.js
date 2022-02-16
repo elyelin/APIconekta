@@ -1,13 +1,14 @@
 const {Schema, model} = require('mongoose')
 
 const initiativeSchema = new Schema({
-   initiative: String
-    // general_info: {
-    //     name: Boolean,
-    //     last_name:  Boolean,
-    //     birthdate:  Boolean,
-    //     email: Boolean
-    // },
+   initiative: String,
+    general_info: {
+        name: Boolean,
+        last_name:  Boolean,
+        birthdate:  Boolean,
+        email: Boolean
+    }
+    // ,
     // comercial_info: {
     //     company_name: Boolean,
     //     term_and_conditions: Boolean,
@@ -24,7 +25,7 @@ const initiativeSchema = new Schema({
     //         city: Boolean,
     //         zip_code: Boolean,
     //    }
-    //}
+    // }
 })
 
 initiativeSchema.set('toJSON', {

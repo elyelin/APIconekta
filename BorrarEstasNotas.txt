@@ -35,3 +35,12 @@ let note = [
 {
 "property":"fisca_info.address", "access_key": "street, number, zip_code" }
 ] }
+/////////////////////
+ //if(noteR.initiative !== de vacio, dame todos los campos)
+    // if(noteR.initiative.keys()){
+    //     console.log("el if esta ok")
+    //     console.log(noteR.initiative)
+    // }else {
+    //     console.log("se fue por el else")
+    //     console.log(noteR.initiative)
+    // }

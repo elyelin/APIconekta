@@ -9,11 +9,9 @@ const Initiative = require('./models/Initiative')
 app.use(express.json())
 
 app.get('/', (request, response) => {
-    //peticion de tipo get con el path "/" 
     response.send('<h1>Conekta</h1>')
 })
 app.get('/api/initiatives', (request, response) =>{
-    //va a devolver un json. con todos los objetos que tengamos guardados
     //Un endpoint que retorne todas las iniciativas con los campos a los que tienen acceso.
     Initiative.find({}).then(initiatives => {
             response.json(initiatives)
@@ -27,54 +25,46 @@ app.get('/api/initiative/:initiative', (request, response, next) => {
 
     Initiative.findById(name)
     .then(initiative => {
-        if(initiative){
-            return response.json(initiative)
-        }else {
-            response.status(404).end()
-        }
+        return initiative 
+        ? response.json(initiative)
+        : response.status(404).end()
     }).catch(err => next(err))
-   // response.send(name)
 })
 //create a new initiative
-app.post('/api/initiative', (request, response) => {
+app.post('/api/initiatives', (request, response, next) => {
    // Un endpoint para dar de alta la iniciativa con el acceso a las propiedades solicitadas.
    //UNA INICIATIVA NO PUEDE REPETIRSE
    //Al dar de alta una iniciativ , se le puede dar de alta a un nodo completo o a campos particulares.
    const noteR = request.body
-    console.log(noteR.initiative)
     
      if(!noteR.initiative){
          return response.status(400).json({
              error: 'required "initiative" field is missing'
          })
      }
-
-    //if(noteR.initiative !== de vacio, dame todos los campos)
-    // if(noteR.initiative.keys()){
-    //     console.log("el if esta ok")
-    //     console.log(noteR.initiative)
-    // }else {
-    //     console.log("se fue por el else")
-    //     console.log(noteR.initiative)
-    // }
-
+   console.log(noteR)
    const init = new Initiative ({   
-      //  property: general_info,
-        // access_key: name, last_name, email
-        initiative: noteR.initiative
+        initiative: noteR.initiative,
+
         //last_name: typeof noteR.last_name !== 'undefined' ? noteR.last_name : false,     
+        general_info: {
+            name: noteR.general_info.name,
+            last_name: typeof noteR.general_info.last_name !== 'undefined' ? noteR.general_info.last_name : false,
+            birthdate:  noteR.general_info.birthdate,
+            email:  noteR.general_info.email
+        }
    })
-     //agregamos la nueva nota a las otras notas
      init.save().then(savedInitiative => { 
          response.json(savedInitiative)
-        })  
+         console.log(savedInitiative)
+        }).catch(err => next(err))
 })
 //update
 app.put('/api/initiative/:initiative', (request, response, next) => {
-    const { name } = request.params
+    //const {name}  = request.params
+    const name  = request.params
     const init = request.body
-console.log(name)
-console.log(init)
+
     const newInitInfo = {
         initiative: init.initiative
     }
@@ -82,10 +72,8 @@ console.log(init)
     Initiative.findByIdAndUpdate(name, newInitInfo, { new: true})
     .then(result => {
         response.json(result)
-        console.log(result)
-    })
+    }).catch(err => next(err))
 })
-//quiero y necesito hacer una funcion que me valide si tiene permisos para los campos que pide
 
 //middleware
 app.use(notFound)
@@ -95,3 +83,4 @@ const PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`server running on port ${PORT}`)
 })
+//quiero y necesito hacer una funcion que me valide si tiene permisos para los campos que pide
