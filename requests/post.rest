@@ -2,7 +2,7 @@ POST http://localhost:3001/api/initiatives
 Content-Type: application/json
 
 {
-    "initiative":"lola",
+    "initiative":"lolobalo",
     "general_info": {
         "name": true,
         "birthdate": true ,

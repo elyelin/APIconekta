@@ -3,6 +3,7 @@ require('./mongo')
 const express = require('express')
 const handleErrors = require('./middleware/handleErrors')
 const notFound = require('./middleware/notFound')
+const { discriminators } = require('./models/Initiative')
 const app = express()
 const Initiative = require('./models/Initiative')
 
@@ -17,6 +18,18 @@ app.get('/api/initiatives', (request, response) =>{
             response.json(initiatives)
     })
 })
+
+ async function validateInitiative (initiative) {
+     
+ await  app.get('/api/initiatives', (request, response) =>{
+        Initiative.find({}).then(initiatives => {
+             
+             console.log("funcion",response.json(initiatives))
+        })
+    })
+  
+}
+
 //recibe un nombre para retornar el objeto con ese id
 app.get('/api/initiative/:initiative', (request, response, next) => {
     //- Un endpoint para consultar los campos a los que tiene acceso por iniciativa
@@ -36,27 +49,26 @@ app.post('/api/initiatives', (request, response, next) => {
    //UNA INICIATIVA NO PUEDE REPETIRSE
    //Al dar de alta una iniciativ , se le puede dar de alta a un nodo completo o a campos particulares.
    const noteR = request.body
+   validateInitiative(noteR.initiative)
+   //una fuction que reciba el request y compararlo con lo que tengo en la base de discriminators, si existe (.map) la iniciativa no la AggregationCursor
     
      if(!noteR.initiative){
          return response.status(400).json({
              error: 'required "initiative" field is missing'
          })
      }
-   console.log(noteR)
    const init = new Initiative ({   
         initiative: noteR.initiative,
-
-        //last_name: typeof noteR.last_name !== 'undefined' ? noteR.last_name : false,     
+    
         general_info: {
             name: noteR.general_info.name,
-            last_name: typeof noteR.general_info.last_name !== 'undefined' ? noteR.general_info.last_name : false,
+            last_name: typeof !noteR.general_info.last_name ? noteR.general_info.last_name : false,
             birthdate:  noteR.general_info.birthdate,
             email:  noteR.general_info.email
         }
    })
      init.save().then(savedInitiative => { 
          response.json(savedInitiative)
-         console.log(savedInitiative)
         }).catch(err => next(err))
 })
 //update
