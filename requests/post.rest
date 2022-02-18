@@ -2,10 +2,27 @@ POST http://localhost:3001/api/initiatives
 Content-Type: application/json
 
 {
-    "initiative":"lolobalo",
+    "initiative":"miguel",
     "general_info": {
         "name": true,
         "birthdate": true ,
         "email": true
+    },
+    "comercial_info": {
+        "company_name": true,
+        "term_and_conditions": false,
+        "send_products": true,
+        "web": false
+    },
+    "fiscal_info":{
+        "rfc": true,
+        "activity": false,
+        "company_name": true,
+        "address":{
+            "street": true,
+            "number": false,
+            "city": true,
+            "zip_code": false
+       }
     }
 }
