@@ -10,7 +10,7 @@ const Initiative = require("./models/Initiative");
 app.use(express.json());
 
 app.get("/", (request, response) => {
-  response.send("<h1>Conekta</h1>");
+  response.json({ api: "Conekta" });
 });
 
 //return all
@@ -21,9 +21,8 @@ app.get("/api/initiatives", (request, response) => {
 });
 
 //search
-app.get("/api/initiatives/:initiative", (request, response, next) => {
+app.get("/api/permission/:initiative", (request, response, next) => {
   //- Un endpoint para consultar los campos a los que tiene acceso por iniciativa
-  //{base-ulr]/permission/:initiative
   const { initiative } = request.params;
 
   Initiative.findOne({ initiative })
@@ -40,30 +39,23 @@ app.post("/api/initiatives", async (request, response, next) => {
   //Al dar de alta una iniciativa , se le puede dar de alta a un nodo completo o a campos particulares.
   const initiative = request.body;
 
-  //var myInit = Initiative.findOne({"initive" : initiative.initiative}).exec()
-
-  //   async function validateInitiative (initiative) {
-  //  await   Initiative.findOne({initiative: noteR.initiative}).exec()
-  //         .then(initiatives => {
-  //              console.log("funcion",response.json(initiatives))
-  //         })
-  // }
-
   if (!initiative.initiative) {
     return response.status(400).json({
       error: 'required "initiative" field is missing',
     });
   }
-  
- const data = await Initiative.findOne({ initiative: initiative.initiative }).exec()
- console.log(data)
- if(data){
-     console.log("entro")
-    return response.statusCode(400).json({
-        error: true,
-        message: "duplicate initiative"
-    })
- }
+
+  const data = await Initiative.findOne({
+    initiative: initiative.initiative,
+  }).exec();
+  console.log(data);
+  if (data) {
+    console.log("entro");
+    return response.status(400).json({
+      error: true,
+      message: "duplicate initiative",
+    });
+  }
 
   const init = new Initiative({
     initiative: initiative.initiative,
@@ -102,20 +94,21 @@ app.post("/api/initiatives", async (request, response, next) => {
     .catch((err) => next(err));
 });
 //update
-app.put("/api/initiatives/:initiative", (request, response, next) => {
+app.put("/api/initiatives/:initiative", async (request, response, next) => {
   const { initiative } = request.params;
-  const init = request.body;
-  //
-  const newInitInfo = {
-    initiative: init.initiative,
-  };
+  const newInitiative = request.body;
 
-  // Initiative.findByIdAndUpdate(initiative, newInitInfo, { new: true})
-  // .then(result => {
-  //     response.json(result)
-  // }).catch(err => next(err))
+  const data = await Initiative.findOne({ initiative: initiative }).exec();
+  console.log(data);
+  if (!data) {
+    console.log("entro");
+    return response.status(404).json({
+      error: true,
+      message: " initiative not found",
+    });
+  }
 
-  Initiative.updateOne(Initiative, newInitInfo)
+  Initiative.findByIdAndUpdate(data._id, newInitiative, { new: true })
     .then((result) => {
       response.json(result);
     })
