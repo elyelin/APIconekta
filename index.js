@@ -1,7 +1,7 @@
 require("dotenv").config();
 require("./mongo");
 const express = require("express");
-const cors = requiere('cors')
+const cors = require('cors')
 const handleErrors = require("./middleware/handleErrors");
 const notFound = require("./middleware/notFound");
 const app = express();
@@ -11,6 +11,7 @@ app.use(express.json());
 
 app.get("/", (request, response) => {
   response.json({ api: "Conekta" });
+  console.log("HOLA")
 });
 
 //return all
@@ -119,7 +120,7 @@ app.put("/api/initiatives/:initiative", async (request, response, next) => {
 app.use(notFound);
 app.use(handleErrors);
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
   console.log(`server running on port ${PORT}`);
 });
