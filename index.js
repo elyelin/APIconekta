@@ -1,12 +1,12 @@
 require("dotenv").config();
 require("./mongo");
 const express = require("express");
+const cors = requiere('cors')
 const handleErrors = require("./middleware/handleErrors");
 const notFound = require("./middleware/notFound");
-const { discriminators } = require("./models/Initiative");
 const app = express();
 const Initiative = require("./models/Initiative");
-
+app.use(cors())
 app.use(express.json());
 
 app.get("/", (request, response) => {
