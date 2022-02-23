@@ -1,98 +1,126 @@
-require('dotenv').config()
-require('./mongo')
-const express = require('express')
-const handleErrors = require('./middleware/handleErrors')
-const notFound = require('./middleware/notFound')
-const { discriminators } = require('./models/Initiative')
-const app = express()
-const Initiative = require('./models/Initiative')
+require("dotenv").config();
+require("./mongo");
+const express = require("express");
+const cors = require('cors')
+const handleErrors = require("./middleware/handleErrors");
+const notFound = require("./middleware/notFound");
+const app = express();
+const Initiative = require("./models/Initiative");
+app.use(cors())
+app.use(express.json());
 
-app.use(express.json())
+app.get("/", (request, response) => {
+  response.json({ api: "Conekta" });
+  console.log("HOLA")
+});
 
-app.get('/', (request, response) => {
-    response.send('<h1>Conekta</h1>')
-})
-app.get('/api/initiatives', (request, response) =>{
-    //Un endpoint que retorne todas las iniciativas con los campos a los que tienen acceso.
-    Initiative.find({}).then(initiatives => {
-            response.json(initiatives)
-    })
-})
+//return all
+app.get("/api/initiatives", (request, response) => {
+  Initiative.find({}).then((initiatives) => {
+    response.json(initiatives);
+  });
+});
 
- async function validateInitiative (initiative) {
-     
- await  app.get('/api/initiatives', (request, response) =>{
-        Initiative.find({}).then(initiatives => {
-             
-             console.log("funcion",response.json(initiatives))
-        })
-    })
-  
-}
+//search
+app.get("/api/permission/:initiative", (request, response, next) => {
+  //- Un endpoint para consultar los campos a los que tiene acceso por iniciativa
+  const { initiative } = request.params;
 
-//recibe un nombre para retornar el objeto con ese id
-app.get('/api/initiative/:initiative', (request, response, next) => {
-    //- Un endpoint para consultar los campos a los que tiene acceso por iniciativa
-//{base-ulr]/permission/:initiative
-    const { name } = request.params
-
-    Initiative.findById(name)
-    .then(initiative => {
-        return initiative 
+  Initiative.findOne({ initiative })
+    .then((initiative) => {
+      return initiative
         ? response.json(initiative)
-        : response.status(404).end()
-    }).catch(err => next(err))
-})
+        : response.status(404).end();
+    })
+    .catch((err) => next(err));
+});
+
 //create a new initiative
-app.post('/api/initiatives', (request, response, next) => {
-   // Un endpoint para dar de alta la iniciativa con el acceso a las propiedades solicitadas.
-   //UNA INICIATIVA NO PUEDE REPETIRSE
-   //Al dar de alta una iniciativ , se le puede dar de alta a un nodo completo o a campos particulares.
-   const noteR = request.body
-   validateInitiative(noteR.initiative)
-   //una fuction que reciba el request y compararlo con lo que tengo en la base de discriminators, si existe (.map) la iniciativa no la AggregationCursor
-    
-     if(!noteR.initiative){
-         return response.status(400).json({
-             error: 'required "initiative" field is missing'
-         })
-     }
-   const init = new Initiative ({   
-        initiative: noteR.initiative,
-    
-        general_info: {
-            name: noteR.general_info.name,
-            last_name: typeof !noteR.general_info.last_name ? noteR.general_info.last_name : false,
-            birthdate:  noteR.general_info.birthdate,
-            email:  noteR.general_info.email
-        }
-   })
-     init.save().then(savedInitiative => { 
-         response.json(savedInitiative)
-        }).catch(err => next(err))
-})
+app.post("/api/initiatives", async (request, response, next) => {
+  //Al dar de alta una iniciativa , se le puede dar de alta a un nodo completo o a campos particulares.
+  const initiative = request.body;
+
+  if (!initiative.initiative) {
+    return response.status(400).json({
+      error: 'required "initiative" field is missing',
+    });
+  }
+
+  const data = await Initiative.findOne({
+    initiative: initiative.initiative,
+  }).exec();
+  console.log(data);
+  if (data) {
+    console.log("entro");
+    return response.status(400).json({
+      error: true,
+      message: "duplicate initiative",
+    });
+  }
+
+  const init = new Initiative({
+    initiative: initiative.initiative,
+
+    general_info: {
+      name: initiative.general_info.name,
+      last_name: typeof !initiative.general_info.last_name
+        ? initiative.general_info.last_name
+        : false,
+      birthdate: initiative.general_info.birthdate,
+      email: initiative.general_info.email,
+    },
+    comercial_info: {
+      company_name: initiative.comercial_info.company_name,
+      term_and_conditions: initiative.comercial_info.term_and_conditions,
+      send_products: initiative.comercial_info.send_products,
+      web: initiative.comercial_info.web,
+    },
+    fiscal_info: {
+      rfc: initiative.fiscal_info.rfc,
+      activity: initiative.fiscal_info.activity,
+      company_name: initiative.fiscal_info.company_name,
+      address: {
+        street: initiative.fiscal_info.address.street,
+        number: initiative.fiscal_info.address.number,
+        city: initiative.fiscal_info.address.city,
+        zip_code: initiative.fiscal_info.address.zip_code,
+      },
+    },
+  });
+  init
+    .save()
+    .then((savedInitiative) => {
+      response.json(savedInitiative);
+    })
+    .catch((err) => next(err));
+});
 //update
-app.put('/api/initiative/:initiative', (request, response, next) => {
-    //const {name}  = request.params
-    const name  = request.params
-    const init = request.body
+app.put("/api/initiatives/:initiative", async (request, response, next) => {
+  const { initiative } = request.params;
+  const newInitiative = request.body;
 
-    const newInitInfo = {
-        initiative: init.initiative
-    }
+  const data = await Initiative.findOne({ initiative: initiative }).exec();
+  console.log(data);
+  if (!data) {
+    console.log("entro");
+    return response.status(404).json({
+      error: true,
+      message: " initiative not found",
+    });
+  }
 
-    Initiative.findByIdAndUpdate(name, newInitInfo, { new: true})
-    .then(result => {
-        response.json(result)
-    }).catch(err => next(err))
-})
+  Initiative.findByIdAndUpdate(data._id, newInitiative, { new: true })
+    .then((result) => {
+      response.json(result);
+    })
+    .catch((err) => next(err));
+});
 
 //middleware
-app.use(notFound)
-app.use(handleErrors)
+app.use(notFound);
+app.use(handleErrors);
 
-const PORT = process.env.PORT
+const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
-    console.log(`server running on port ${PORT}`)
-})
-//quiero y necesito hacer una funcion que me valide si tiene permisos para los campos que pide
+  console.log(`server running on port ${PORT}`);
+});

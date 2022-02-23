@@ -1,6 +1,0 @@
-PUT http://localhost:3001/api/initiative/Fifa
-Content-Type: application/json
-
-{ 
-    "initiative": "esto es una actualizacion x998"
-}
