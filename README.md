@@ -4,6 +4,7 @@ Link Heroku:
 https://blooming-wave-81533.herokuapp.com/
 
 Routes:
+
  -Home: "https://blooming-wave-81533.herokuapp.com/"
  
  -Return all: "https://blooming-wave-81533.herokuapp.com/api/initiatives"
