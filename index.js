@@ -11,19 +11,17 @@ app.use(express.json());
 
 app.get("/", (request, response) => {
   response.json({ api: "Conekta" });
-  console.log("HOLA")
 });
 
 //return all
-app.get("/api/initiatives", (request, response) => {
+app.get("/api/initiatives", (request,response) => {
   Initiative.find({}).then((initiatives) => {
-    response.json(initiatives);
+      response.json(initiatives); 
   });
 });
 
 //search
 app.get("/api/permission/:initiative", (request, response, next) => {
-  //- Un endpoint para consultar los campos a los que tiene acceso por iniciativa
   const { initiative } = request.params;
 
   Initiative.findOne({ initiative })
@@ -37,7 +35,6 @@ app.get("/api/permission/:initiative", (request, response, next) => {
 
 //create a new initiative
 app.post("/api/initiatives", async (request, response, next) => {
-  //Al dar de alta una iniciativa , se le puede dar de alta a un nodo completo o a campos particulares.
   const initiative = request.body;
 
   if (!initiative.initiative) {
@@ -49,9 +46,8 @@ app.post("/api/initiatives", async (request, response, next) => {
   const data = await Initiative.findOne({
     initiative: initiative.initiative,
   }).exec();
-  console.log(data);
+
   if (data) {
-    console.log("entro");
     return response.status(400).json({
       error: true,
       message: "duplicate initiative",
@@ -59,13 +55,10 @@ app.post("/api/initiatives", async (request, response, next) => {
   }
 
   const init = new Initiative({
-    initiative: initiative.initiative,
-
+ initiative: initiative.initiative,
     general_info: {
       name: initiative.general_info.name,
-      last_name: typeof !initiative.general_info.last_name
-        ? initiative.general_info.last_name
-        : false,
+      last_name: initiative.general_info.last_name,
       birthdate: initiative.general_info.birthdate,
       email: initiative.general_info.email,
     },
@@ -94,15 +87,14 @@ app.post("/api/initiatives", async (request, response, next) => {
     })
     .catch((err) => next(err));
 });
+
 //update
 app.put("/api/initiatives/:initiative", async (request, response, next) => {
   const { initiative } = request.params;
   const newInitiative = request.body;
 
   const data = await Initiative.findOne({ initiative: initiative }).exec();
-  console.log(data);
   if (!data) {
-    console.log("entro");
     return response.status(404).json({
       error: true,
       message: " initiative not found",
